@@ -1,52 +1,109 @@
-#  Codebook for the Getting and cleaning data Assignment
+#  Description of the performed analysis
 
 
-The dataset is based on and is a summary of the dataset used in the study  "Human Activity Recognition Using Smartphones Dataset" by Jorge L. Reyes-Ortiz, Davide Anguita, Alessandro Ghio and Luca Oneto (for more details refer to http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones).
+First we load dplyr and tidyr packages:
+```{r}
+library(dplyr)
+library(tidyr)
+```
+Then we read all necessary input files (features.txt, X_test.txt, y_test.txt, X_train.txt, y_train.txt, subject_train.txt, subject_test.txt, activity_labels.txt) into different variables. stringsAsFactors = FALSE is necessary to be able to join the feature vector with other character variables to form a vector of names of one of the intermediary results.
 
-The experiments have been carried out with a group of 30 volunteers (subjects) within an age bracket of 19-48 years. Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist. Using its embedded accelerometer and gyroscope, we captured 3-axial linear acceleration and 3-axial angular velocity at a constant rate of 50Hz. The experiments have been video-recorded to label the data manually.  
+```{r}
+features <- read.table("features.txt", stringsAsFactors = FALSE)
+feat_test <- read.table("test/X_test.txt") # measured features of the test set
+act_test <- read.table("test/y_test.txt") # activity codes for each record in the test set
+feat_train <- read.table("train/X_train.txt") # measured features of the training set
+act_train <- read.table("train/y_train.txt") # activity codes for each record in the training set
+subject_train <- read.table("train/subject_train.txt") # subject codes for each record in the training set
+subject_test <- read.table("test/subject_test.txt") # subject codes for each record in the test set
+act_labels <- read.table("activity_labels.txt") # activity codes and their meanings
+```
 
-The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window). The sensor acceleration signal, which has gravitational and body motion components, was separated using a Butterworth low-pass filter into body acceleration and gravity. The gravitational force is assumed to have only low frequency components, therefore a filter with 0.3 Hz cutoff frequency was used. From each window, a vector of features was obtained by calculating variables from the time and frequency domain. 
+Then we separately merge the recorded activities codes with their meanings so that we have an activity name for each record. The variable that should match is "V1" in all cases (name assigned to the first column by default).
+```{r}
+actnames_test <- merge(act_test, act_labels, by.x = "V1", by.y = "V1")
+actnames_train <- merge(act_train, act_labels, by.x = "V1", by.y = "V1")
+```
 
-The features selected for this database come from the accelerometer and gyroscope 3-axial raw signals tAcc-XYZ and tGyro-XYZ. These time domain signals (prefix 't' to denote time) were captured at a constant rate of 50 Hz. Then they were filtered using a median filter and a 3rd order low pass Butterworth filter with a corner frequency of 20 Hz to remove noise. Similarly, the acceleration signal was then separated into body and gravity acceleration signals (tBodyAcc-XYZ and tGravityAcc-XYZ) using another low pass Butterworth filter with a corner frequency of 0.3 Hz. 
+Then we join (using bind_cols) the feature measurements, the activity names (second column in  the actnames_test and actnames_train data frames) and the subject codes for each data record into one data frame, separately for the training and the test datasets.
 
-Subsequently, the body linear acceleration and angular velocity were derived in time to obtain Jerk signals (tBodyAccJerk-XYZ and tBodyGyroJerk-XYZ). Also the magnitude of these three-dimensional signals were calculated using the Euclidean norm (tBodyAccMag, tGravityAccMag, tBodyAccJerkMag, tBodyGyroMag, tBodyGyroJerkMag). 
+```{r}
+join_test <- bind_cols(as.data.frame(actnames_test$V2), as.data.frame(subject_test$V1), feat_test)
+join_train <- bind_cols(as.data.frame(actnames_train$V2), as.data.frame(subject_train$V1), feat_train)
+```
 
-Finally a Fast Fourier Transform (FFT) was applied to some of these signals producing fBodyAcc-XYZ, fBodyAccJerk-XYZ, fBodyGyro-XYZ, fBodyAccJerkMag, fBodyGyroMag, fBodyGyroJerkMag. (Note the 'f' to indicate frequency domain signals). 
+Then we assign the names to the both resulting train and test datasets. Accordning the order of the variables in the function bind_cols (see above), the first two names should be "activity" and "subject". The rest of the names are contained in the second column of the features data frame:
 
-These signals were used to estimate variables of the feature vector for each pattern:  
-'-XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
+```{r}
+names(join_test) <- c("activity", "subject", features$V2)
+names(join_train) <- c("activity", "subject", features$V2)
+```
 
-The exact list of features available in the provided dataset is provided below.
+Then we finally join the training and the test datasets into the join dataset by binding the rows:
 
-One record in the initial dataset of Reyes-Ortiz et al. related to a certain subject, certain activity and a certain time window. We use the number of the record in the initial dataset in our dataset as well.
+```{r}
+join <- bind_rows(join_test, join_train)
+```
 
-The variables contained in the dataset are described as follows:
+Using the regular expression with the grep command we select the column names that contain character sequences "mean(" or "std(" while not forgetting the first two columns (activity and subject). Note that there are other features in the dataset that contain "mean" as part of their name (e.g. fBodyGyro-meanFreq()-X) which we are not interesting in. Therefore we look for "mean(" in the names of the columns of the join dataset.
 
-1. activity: each of the six activities mentioned above (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING)
-2. subject: an identifier (from 1 to 30) of the subject who carried out the experiment
-3. obs: identifier of record in the initial dataset
-4. feature:  the feature measured, it takes one of the following values:
+```{r}
+sel_join <- join[,c(1, 2, grep(".*mean\\(.*|.*std\\(.*", names(join)))]
+```
 
-        + tBodyAcc-XYZ
-        + tGravityAcc-XYZ
-        + tBodyAccJerk-XYZ
-        + tBodyGyro-XYZ
-        + tBodyGyroJerk-XYZ
-        + tBodyAccMag
-        + tGravityAccMag
-        + tBodyAccJerkMag
-        + tBodyGyroMag
-        + tBodyGyroJerkMag
-        + fBodyAcc-XYZ
-        + fBodyAccJerk-XYZ
-        + fBodyGyro-XYZ
-        + fBodyAccMag
-        + fBodyAccJerkMag
-        + fBodyGyroMag
-        + fBodyGyroJerkMag
-5. mean: mean value of the respective feature relating to the respective activity, respective subject and respective observation
-6. sub: standard deviation of the respective feature relating to the respective activity, respective subject and respective observation
-7. avg_mean: average (across all observations) mean value of the respective feature  relating to the respective activity and the respective subject 
-8. avg_std: average (across all observations) standard deviation of the respective feature  relating to the respective activity and the respective subject 
+To be able to smoothly separate the variables in the next steps we need to transform hte names of the variables. We see that they contain several hyphens, which can turn out to be a problem when separating the character values. First we delete all hyphens from the variable names:
+
+```{r}
+names(sel_join) <- gsub("-", "", names(sel_join))
+```
+
+Then we look for the expression "mean" in the names of the variables, and if found move to the end of the name of the variable, at the same time we separate it by a underscore sign from the rest of the name. We repeate this procedure for the "std" expression.
+
+```{r}
+names(sel_join) <- gsub("(.*)(mean\\(\\))(.*)", "\\1\\3_mean", names(sel_join))
+names(sel_join) <- gsub("(.*)(std\\(\\))(.*)", "\\1\\3_std", names(sel_join))
+```
+
+The data set contains multiple variables in one column. Every feature is either a mean or a standard deviation of a certain metric. The metric itself has to be separated from the statistical measure. In fact it is not obvious whether "mean and "std" or all the metrics (tBodyAcc-X, tBodyAcc-Y etc.) should be the new column names. We opt for the first variant.
 
 
+Since a combination of activity and subject can repeat several times, we need an identifier of each record to be able to associate means and stds of a certain metric relating to a certain activity and certain subject with each other in the course of the following manipulations. We create a new variable "obs" to decode each of the record in the initial dataset.
+
+```{r}
+sel_join <- mutate(sel_join, obs = 1:nrow(sel_join))  
+```
+Next we "gather" all columns except activity, subject and obs (i.e. all feature data)  convert all of them into two columns: var (with values being all feature value) and value (with values being all respective measured feature values)
+
+```{r}
+sel_join_g <- gather(sel_join, var, value, -(activity:subject), -obs)
+```
+Next we separate the var column into two columns "feature" and "metric". We have just one non-alphanumerical character in the var column (underscore), and it is automatically recognised as a separator. "feature" column now contains the feature names without suffixes "mean" or "std", and the column "metric" contains values "mean" and "std":
+
+```{r}
+sel_join_sep <- separate(sel_join_g, var, c("feature", "metric"))
+```
+
+Next we "spread" the metric column and define its values "mean" and "std" as the new colum names. The values that these columns should contain are the values in the "value" column.
+
+```{r}
+sel_join_spr <- spread(sel_join_sep, metric, value)
+```
+At last we group our dataset by activity, subject and (naturally) by feature to be able to compute summary metric per group:
+
+```{r}
+grouped_dataset <- group_by(sel_join_spr, activity, subject, feature)
+```
+
+Our final result is the "sum_dataset" data frame which is the grouped dataset with two additional variables: avg_mean, which is the average mean value of the respective feature relating to a certain activity and a certain subject, and avg_std, which is the average standard deviation of the respective feature relating to a certain activity and a certain subject. We convert the sun_dataset into tbl format that optimises the visualisation of the dataset.
+
+```{r}
+sum_dataset <- mutate(grouped_dataset, avg_mean = mean(mean), avg_std = mean(std))
+sum_dataset <- tbl_df(sum_dataset)
+```
+
+The last step is to write the dataset into the file:
+
+
+```{r}
+write.table(sum_dataset, file = "final_dataset.txt", row.name = FALSE)
+```
