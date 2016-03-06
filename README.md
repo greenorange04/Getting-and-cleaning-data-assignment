@@ -22,35 +22,31 @@ One record in the initial dataset of Reyes-Ortiz et al. related to a certain sub
 
 The variables contained in the dataset are described as follows:
 
-* activity: each of the six activities mentioned above (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING)
-* subject: an identifier (from 1 to 30) of the subject who carried out the experiment
-* obs: identifier of record in the initial dataset
-* feature:  the feature measured, it takes one of the following values:
+1. activity: each of the six activities mentioned above (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING)
+2. subject: an identifier (from 1 to 30) of the subject who carried out the experiment
+3. obs: identifier of record in the initial dataset
+4. feature:  the feature measured, it takes one of the following values:
 
-+ tBodyAcc-XYZ
-+ tGravityAcc-XYZ
-+ tBodyAccJerk-XYZ
-+ tBodyGyro-XYZ
-+ tBodyGyroJerk-XYZ
-+ tBodyAccMag
-+ tGravityAccMag
-+ tBodyAccJerkMag
-+ tBodyGyroMag
-+ tBodyGyroJerkMag
-+ fBodyAcc-XYZ
-+ fBodyAccJerk-XYZ
-+ fBodyGyro-XYZ
-+ fBodyAccMag
-+ fBodyAccJerkMag
-+ fBodyGyroMag
-+ fBodyGyroJerkMag
-
-* mean: mean value of the respective feature relating to the respective activity, respective subject and respective observation
-
-* sub: standard deviation of the respective feature relating to the respective activity, respective subject and respective observation
-
-* avg_mean: average (across all observations) mean value of the respective feature  relating to the respective activity and the respective subject 
-
-* avg_std: average (across all observations) standard deviation of the respective feature  relating to the respective activity and the respective subject 
+        + tBodyAcc-XYZ
+        + tGravityAcc-XYZ
+        + tBodyAccJerk-XYZ
+        + tBodyGyro-XYZ
+        + tBodyGyroJerk-XYZ
+        + tBodyAccMag
+        + tGravityAccMag
+        + tBodyAccJerkMag
+        + tBodyGyroMag
+        + tBodyGyroJerkMag
+        + fBodyAcc-XYZ
+        + fBodyAccJerk-XYZ
+        + fBodyGyro-XYZ
+        + fBodyAccMag
+        + fBodyAccJerkMag
+        + fBodyGyroMag
+        + fBodyGyroJerkMag
+5. mean: mean value of the respective feature relating to the respective activity, respective subject and respective observation
+6. sub: standard deviation of the respective feature relating to the respective activity, respective subject and respective observation
+7. avg_mean: average (across all observations) mean value of the respective feature  relating to the respective activity and the respective subject 
+8. avg_std: average (across all observations) standard deviation of the respective feature  relating to the respective activity and the respective subject 
 
 
